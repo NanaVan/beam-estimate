@@ -19,29 +19,31 @@ async function checkNuclei(){
 		document.getElementById('tab_nuclei').rows[2].cells[1].innerHTML = result[0];	
 		document.getElementById('tab_nuclei').rows[3].cells[1].innerHTML = result[1];	
 		stmt.free();
-		stmt = db.prepare("SELECT YIELD, BEAM, ENERGY, THICKNESS, FILENAME FROM FISSIONDATA WHERE A=$aval AND ELEMENT=$eleval");
+		stmt = db.prepare("SELECT YIELD, PURE, BEAM, ENERGY, THICKNESS, FILENAME FROM FISSIONDATA WHERE A=$aval AND ELEMENT=$eleval");
 		let result_fission = stmt.get({'$aval': document.getElementById('mass_number').value, '$eleval': result[0]});
 		//console.log(result_fission);
 		stmt.free();
-		stmt = db.prepare("SELECT YIELD, BEAM, ENERGY, THICKNESS, FILENAME FROM PFDATA WHERE A=$aval AND ELEMENT=$eleval");
+		stmt = db.prepare("SELECT YIELD, PURE, BEAM, ENERGY, THICKNESS, FILENAME FROM PFDATA WHERE A=$aval AND ELEMENT=$eleval");
 		let result_pf = stmt.get({'$aval': document.getElementById('mass_number').value, '$eleval': result[0]});
 		//console.log(result_pf);
 		let flag = 0;
 		if (Array.isArray(result_fission) && result_fission.length > 0){
 			document.getElementById('tab_fissionResult').style.display = 'block';
 			document.getElementById('tab_fissionResult').rows[0].cells[1].innerHTML = result_fission[0].toExponential(3).toString() + ' pps';
-			document.getElementById('tab_fissionResult').rows[1].cells[1].innerHTML = result_fission[1];
-			document.getElementById('tab_fissionResult').rows[2].cells[1].innerHTML = result_fission[2].toString() + ' MeV/u' ;
-			document.getElementById('tab_fissionResult').rows[3].cells[1].innerHTML = '<span>' + result_fission[3].toString() + ' mg/cm<sup>2</sup></span>';
+			document.getElementById('tab_fissionResult').rows[1].cells[1].innerHTML = (result_fission[1]*100).toFixed(3).toString() + ' %';
+			document.getElementById('tab_fissionResult').rows[2].cells[1].innerHTML = result_fission[2];
+			document.getElementById('tab_fissionResult').rows[3].cells[1].innerHTML = result_fission[3].toString() + ' MeV/u' ;
+			document.getElementById('tab_fissionResult').rows[4].cells[1].innerHTML = '<span>' + result_fission[4].toString() + ' mg/cm<sup>2</sup></span>';
 		}else{
 			flag += 1;
 		}
 		if (Array.isArray(result_pf) && result_pf.length > 0){
 			document.getElementById('tab_pfResult').style.display = 'block';
 			document.getElementById('tab_pfResult').rows[0].cells[1].innerHTML = result_pf[0].toExponential(3).toString() + ' pps';
-			document.getElementById('tab_pfResult').rows[1].cells[1].innerHTML = result_pf[1].match(/\d{2,3}[A-Za-z]{1,2}/g);
-			document.getElementById('tab_pfResult').rows[2].cells[1].innerHTML = result_pf[2].toString() + ' MeV/u' ;
-			document.getElementById('tab_pfResult').rows[3].cells[1].innerHTML = '<span>' + result_pf[3].toString() + ' mg/cm<sup>2</sup></span>';
+			document.getElementById('tab_pfResult').rows[1].cells[1].innerHTML = (result_pf[1]*100).toFixed(3).toString() + ' %';
+			document.getElementById('tab_pfResult').rows[2].cells[1].innerHTML = result_pf[2].match(/\d{2,3}[A-Za-z]{1,2}/g);
+			document.getElementById('tab_pfResult').rows[3].cells[1].innerHTML = result_pf[3].toString() + ' MeV/u' ;
+			document.getElementById('tab_pfResult').rows[4].cells[1].innerHTML = '<span>' + result_pf[4].toString() + ' mg/cm<sup>2</sup></span>';
 		}else{
 			flag += 1;
 		}
