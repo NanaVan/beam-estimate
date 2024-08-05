@@ -46,8 +46,8 @@ class gen_database():
         '''
         read .lpp files in assigned folder for projectile fragmentation channel
         return 2 json files for file information and nuclei information
-        file_info = {'file_name1': {primary_beam, beam_energy, target_thickness}, 'file_name2': {primary_beam, beam_energy, target_thickness} ...}
-        nuclei_info = {'nuclei1': {'file_name1': yield, 'file_name2': yield, ...}, 'nuclei2': {'file_name1': yield, ...}}
+        file_info = {'file_name1': {primary_beam, beam_energy, total_yield, target_thickness}, 'file_name2': {primary_beam, beam_energy, total_yield, target_thickness} ...}
+        nuclei_info = {'nuclei1': {'file_name1': {'yield': yield, 'purity': yield/total_yield}, 'file_name2': yield, ...}, 'nuclei2': {'file_name1': {'yield': yield, 'purity': yield/total_yield}}, ...}
         return table PFDATA for nuclei of maximum yield
 
         yield = sum of different charge state yield
@@ -155,8 +155,8 @@ class gen_database():
         '''
         read .lpp files in assigned folder for fission channel
         return 2 json files for file information and nuclei information
-        file_info = {'file_name1': {primary_beam, beam_energy, target_thickness}, 'file_name2': {primary_beam, beam_energy, target_thickness} ...}
-        nuclei_info = {'nuclei1': {'file_name1': yield, 'file_name2': yield, ...}, 'nuclei2': {'file_name1': yield, ...}}
+        file_info = {'file_name1': {primary_beam, beam_energy, total_yield, target_thickness}, 'file_name2': {primary_beam, beam_energy, total_yield, target_thickness} ...}
+        nuclei_info = {'nuclei1': {'file_name1': {'yield': yield, 'purity': yield/total_yield}, 'file_name2': yield, ...}, 'nuclei2': {'file_name1': {'yield': yield, 'purity': yield/total_yield}}, ...}
         return table FISSIONDATA for nuclei of maximum yield
 
         yield = sum of low/mid/high channel yield + different charge state yield
