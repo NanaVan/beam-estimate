@@ -63,6 +63,7 @@ class gen_database():
                 ELEMENT     CHAR(2)     NOT NULL,
                 NUCLEI      TEXT        NOT NULL,
                 YIELD       REAL,
+                PURE        REAL,
                 FILENAME    TEXT,
                 BEAM        TEXT,
                 ENERGY      REAL,
@@ -91,6 +92,7 @@ class gen_database():
                         ELEMENT     CHAR(2)     NOT NULL,
                         NUCLEI      TEXT        NOT NULL,
                         YIELD       REAL,
+                        PURE        REAL,
                         FILENAME    TEXT,
                         BEAM        TEXT,
                         ENERGY      REAL,
@@ -115,7 +117,9 @@ class gen_database():
                     self.cur.execute("INSERT INTO temp_file (A, ELEMENT, NUCLEI, YIELD, FILENAME, BEAM, ENERGY, THICKNESS) VALUES (?,?,?,?,?,?,?,?)", (A, element, A+element, segment[-1][1:], file_name, primary_beam, primary_energy, target_thickness))
                 # reset yield for multiple charge state channels
                 result = self.cur.execute("SELECT sum(YIELD), NUCLEI FROM temp_file GROUP BY NUCLEI").fetchall()
-                self.cur.executemany("UPDATE temp_file SET YIELD=? WHERE NUCLEI=?", result)
+                total_yield = self.cur.execute("SELECT sum(YIELD) FROM temp_file").fetchone()[0]
+                result = [(item[0], item[0]/total_yield, item[1]) for item in result]
+                self.cur.executemany("UPDATE temp_file SET YIELD=?, PURE=? WHERE NUCLEI=?", result)
                 self.cur.executescript('''
                         CREATE TABLE TEMPTABLE as SELECT DISTINCT * FROM temp_file;
                         DROP TABLE temp_file;
@@ -128,11 +132,11 @@ class gen_database():
                     else:
                         nuclei_dict[nuclei[-1]] = {file_name: nuclei[0]}
                 # sort for the maximum yield for each nuclei
-                self.cur.execute('''INSERT INTO PFDATA (A, ELEMENT, NUCLEI, YIELD, FILENAME, BEAM, ENERGY, THICKNESS) \
-                            SELECT A, ELEMENT, NUCLEI, YIELD, FILENAME, BEAM, ENERGY, THICKNESS FROM temp_file;''')
+                self.cur.execute('''INSERT INTO PFDATA (A, ELEMENT, NUCLEI, YIELD, PURE, FILENAME, BEAM, ENERGY, THICKNESS) \
+                            SELECT A, ELEMENT, NUCLEI, YIELD, PURE, FILENAME, BEAM, ENERGY, THICKNESS FROM temp_file;''')
                 self.conn.commit()
-                result = self.cur.execute("SELECT max(YIELD), FILENAME, BEAM, ENERGY, THICKNESS, NUCLEI FROM PFDATA GROUP BY NUCLEI").fetchall()
-                self.cur.executemany("UPDATE PFDATA SET YIELD=?, FILENAME=?, BEAM=?, ENERGY=?, THICKNESS=? WHERE NUCLEI=?", result)
+                result = self.cur.execute("SELECT max(YIELD), PURE, FILENAME, BEAM, ENERGY, THICKNESS, NUCLEI FROM PFDATA GROUP BY NUCLEI").fetchall()
+                self.cur.executemany("UPDATE PFDATA SET YIELD=?, PURE=?, FILENAME=?, BEAM=?, ENERGY=?, THICKNESS=? WHERE NUCLEI=?", result)
                 self.cur.executescript("""
                         CREATE TABLE TEMPTABLE as SELECT DISTINCT * FROM PFDATA;
                         DROP TABLE PFDATA;
@@ -168,6 +172,7 @@ class gen_database():
                 ELEMENT     CHAR(2)     NOT NULL,
                 NUCLEI      TEXT        NOT NULL,
                 YIELD       REAL,
+                PURE        REAL,
                 FILENAME    TEXT,
                 BEAM        TEXT,
                 ENERGY      REAL,
@@ -193,6 +198,7 @@ class gen_database():
                         ELEMENT     CHAR(2)     NOT NULL,
                         NUCLEI      TEXT        NOT NULL,
                         YIELD       REAL,
+                        PURE        REAL,
                         FILENAME    TEXT,
                         BEAM        TEXT,
                         ENERGY      REAL,
@@ -217,7 +223,9 @@ class gen_database():
                     self.cur.execute("INSERT INTO temp_file (A, ELEMENT, NUCLEI, YIELD, FILENAME, BEAM, ENERGY, THICKNESS) VALUES (?,?,?,?,?,?,?,?)", (A, element, A+element, segment[-1][1:], file_name, primary_beam, primary_energy, target_thickness))
                 # reset yield for multiple reaction channels
                 result = self.cur.execute("SELECT sum(YIELD), NUCLEI FROM temp_file GROUP BY NUCLEI").fetchall()
-                self.cur.executemany("UPDATE temp_file SET YIELD=? WHERE NUCLEI=?", result)
+                total_yield = self.cur.execute("SELECT sum(YIELD) FROM temp_file").fetchone()[0]
+                result = [(item[0], item[0]/total_yield, item[1]) for item in result]
+                self.cur.executemany("UPDATE temp_file SET YIELD=?, PURE=? WHERE NUCLEI=?", result)
                 self.cur.executescript('''
                         CREATE TABLE TEMPTABLE as SELECT DISTINCT * FROM temp_file;
                         DROP TABLE temp_file;
@@ -230,11 +238,11 @@ class gen_database():
                     else:
                         nuclei_dict[nuclei[-1]] = {file_name: nuclei[0]}
                 # sort for the maximum yield for each nuclei
-                self.cur.execute('''INSERT INTO FISSIONDATA (A, ELEMENT, NUCLEI, YIELD, FILENAME, BEAM, ENERGY, THICKNESS) \
-                            SELECT A, ELEMENT, NUCLEI, YIELD, FILENAME, BEAM, ENERGY, THICKNESS FROM temp_file;''')
+                self.cur.execute('''INSERT INTO FISSIONDATA (A, ELEMENT, NUCLEI, YIELD, PURE, FILENAME, BEAM, ENERGY, THICKNESS) \
+                            SELECT A, ELEMENT, NUCLEI, YIELD, PURE, FILENAME, BEAM, ENERGY, THICKNESS FROM temp_file;''')
                 self.conn.commit()
-                result = self.cur.execute("SELECT max(YIELD), FILENAME, BEAM, ENERGY, THICKNESS, NUCLEI FROM FISSIONDATA GROUP BY NUCLEI").fetchall()
-                self.cur.executemany("UPDATE FISSIONDATA SET YIELD=?, FILENAME=?, BEAM=?, ENERGY=?, THICKNESS=? WHERE NUCLEI=?", result)
+                result = self.cur.execute("SELECT max(YIELD), PURE, FILENAME, BEAM, ENERGY, THICKNESS, NUCLEI FROM FISSIONDATA GROUP BY NUCLEI").fetchall()
+                self.cur.executemany("UPDATE FISSIONDATA SET YIELD=?, PURE=?, FILENAME=?, BEAM=?, ENERGY=?, THICKNESS=? WHERE NUCLEI=?", result)
                 self.cur.executescript("""
                         CREATE TABLE TEMPTABLE as SELECT DISTINCT * FROM FISSIONDATA;
                         DROP TABLE FISSIONDATA;
