@@ -109,8 +109,6 @@ class gen_database():
                         break
                     else:
                         pass
-                # save file information
-                file_dict[file_name] = {'primary_beam': primary_beam, 'primary_energy': primary_energy, 'target_thickness': target_thickness}
                 for line in lpp:
                     segment = line.strip().split(',')[0].split()
                     A, element, _ = re.split("([A-Z][a-z]?)", segment[0])
@@ -125,12 +123,14 @@ class gen_database():
                         DROP TABLE temp_file;
                         ALTER TABLE TEMPTABLE RENAME TO temp_file;''')
                 self.conn.commit()
+                # save file information
+                file_dict[file_name] = {'primary_beam': primary_beam, 'primary_energy': primary_energy, 'total_yield': total_yield, 'target_thickness': target_thickness}
                 # save nuclei information
                 for nuclei in result:
                     if nuclei[-1] in nuclei_dict:
-                        nuclei_dict[nuclei[-1]][file_name] = nuclei[0]
+                        nuclei_dict[nuclei[-1]][file_name] = {'yield': nuclei[0], 'purity': nuclei[0]/total_yield}
                     else:
-                        nuclei_dict[nuclei[-1]] = {file_name: nuclei[0]}
+                        nuclei_dict[nuclei[-1]] = {file_name: {'yield': nuclei[0], 'purity': nuclei[0]/total_yield}}
                 # sort for the maximum yield for each nuclei
                 self.cur.execute('''INSERT INTO PFDATA (A, ELEMENT, NUCLEI, YIELD, PURE, FILENAME, BEAM, ENERGY, THICKNESS) \
                             SELECT A, ELEMENT, NUCLEI, YIELD, PURE, FILENAME, BEAM, ENERGY, THICKNESS FROM temp_file;''')
@@ -215,8 +215,6 @@ class gen_database():
                         break
                     else:
                         pass
-                # save file information
-                file_dict[file_name] = {'primary_beam': primary_beam, 'primary_energy': primary_energy, 'target_thickness': target_thickness}
                 for line in lpp:
                     segment = line.strip().split(',')[0].split()
                     A, element, _ = re.split("([A-Z][a-z]?)", segment[0])
@@ -231,12 +229,14 @@ class gen_database():
                         DROP TABLE temp_file;
                         ALTER TABLE TEMPTABLE RENAME TO temp_file;''')
                 self.conn.commit()
+                # save file information
+                file_dict[file_name] = {'primary_beam': primary_beam, 'primary_energy': primary_energy, 'total_yield': total_yield, 'target_thickness': target_thickness}
                 # save nuclei information
                 for nuclei in result:
                     if nuclei[-1] in nuclei_dict:
-                        nuclei_dict[nuclei[-1]][file_name] = nuclei[0]
+                        nuclei_dict[nuclei[-1]][file_name] = {'yield': nuclei[0], 'purity': nuclei[0]/total_yield}
                     else:
-                        nuclei_dict[nuclei[-1]] = {file_name: nuclei[0]}
+                        nuclei_dict[nuclei[-1]] = {file_name: {'yield': nuclei[0], 'purity': nuclei[0]/total_yield}}
                 # sort for the maximum yield for each nuclei
                 self.cur.execute('''INSERT INTO FISSIONDATA (A, ELEMENT, NUCLEI, YIELD, PURE, FILENAME, BEAM, ENERGY, THICKNESS) \
                             SELECT A, ELEMENT, NUCLEI, YIELD, PURE, FILENAME, BEAM, ENERGY, THICKNESS FROM temp_file;''')
