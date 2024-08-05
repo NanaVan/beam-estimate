@@ -1,0 +1,220 @@
+<!DICTYOE html>
+<html>
+
+<head>
+	<meta charset='utf-8'>
+	<title>RIBILL2 Estimated Rate</title>
+	<link rel="shortcut ion" type='image/x-icon' href='/dist/favicon-32.png'>
+</head>
+
+<style>
+ body{
+   font-family: Consolas, Menlo, monospace;
+ }
+
+ div.parent{
+   margin: 20px 0 auto;
+   width: 900px;
+ }
+
+ div.child{
+   margin: 20px auto;
+   width: 880px; 
+ }
+
+ table{
+   	border-collapse: collapse;
+   	border : 0px solid;
+	height: 160px; 
+	width: 880px;
+	margin: 20px auto;
+}
+ 
+ td{
+   	padding : 4px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+ }
+
+ input{
+	font-family: Roboto;
+ }
+
+ .td-0{
+	text-align: left; 
+	font-weight: bold; 
+	font-size: 18px;
+	width: 240px;
+ }
+
+ .td-1{
+ 	text-align: left;
+	font-size: 18px;
+ }
+
+ caption{
+	text-align: left; 
+	font-weight: bold; 
+	font-size: 22px;
+ }
+
+ .button-5 {
+  margin: 0px auto;
+  align-items: center;
+  align: left;
+  background-clip: padding-box;
+  background-color: #fa6400;
+  border: 1px solid transparent;
+  border-radius: .25rem;
+  box-shadow: rgba(0, 0, 0, 0.02) 0 1px 3px 0;
+  box-sizing: border-box;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  font-famliy: inherit;
+  font-size: 18px;
+  font-weight: bold;
+  justify-content: center;
+  line-height: 1.25;
+  min-height: 3rem;
+  padding: calc(.875rem - 1px) calc(1.5rem - 1px);
+  position: relative;
+  text-decoration: none;
+  transition: all 250ms;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  vertical-align: baseline;
+  width: auto;
+}
+
+.button-5:hover,
+.button-5:focus {
+  background-color: #fb8332;
+  box-shadow: rgba(0, 0, 0, 0.1) 0 4px 12px;
+}
+
+.button-5:hover {
+  transform: translateY(-1px);
+}
+
+.button-5:active {
+  background-color: #c85000;
+  box-shadow: rgba(0, 0, 0, .06) 0 2px 4px;
+  transform: translateY(0);
+}
+
+a:link{
+	color: darkorange; 
+	background-color: transparent;
+	text-decoration: none;
+}
+a:hover{
+	color: red;
+	background-color: transparent;
+	text-decoration: underline;
+}
+a:active{
+	color: red;
+	background-color: transparent;
+	text-decoration: underline;
+}
+a:visited{
+	color: black;	
+	background-color: transparent;
+	text-decoration: none;
+}
+
+</style>
+
+<body>
+<h1 align='left'>RIBILL2 Esitmated Rates</h1>
+<p style='font-size: 18px;' align="left">Enetr values for A and Z in the form below and click the "Lookup Estimate" button to view calculations.</p>
+<div class='parent'>
+<div class='child' style="height: 100px;">
+<table id="estimator" style='height: 100px;'>
+	<tr>
+		<td class='td-0'>A (mass number)</td>
+		<td><input type='int' id='mass_number' size='15' style='font-size: 18px;'/></td>
+	</tr>
+	<tr>
+		<td class='td-0'>Z (atomic number)</td>
+		<td><input type='int' id='atomic_number' size='15' style='font-size: 18px;'/></td>
+	</tr>
+</table>
+</div>
+<div class='child' style='height: 30px; margin: 0px auto;'>
+<button class='button-5' id='estimate' style='float: left;'>Lookup Estimate</button>
+</div>
+
+<div id='div_result' class='child' style='margin: 40px auto; height: 700px; display: none;'>
+<p id='p_error0' style='font-size: 18px; color: red; display: none;' align="left">No such nuclei in NUBASE2020!</p>
+<p id='p_error1' style='font-size: 18px; color: red; display: none;' align="left">No such nuclei available at RIBILL2!</p>
+<table id='tab_nuclei' style='display: none;'>
+	<caption><nobr>Fragment</nobr></caption>
+	<tr>
+		<td class='td-0'>A (mass number)</td>
+		<td class='td-1'></td>
+	</tr>
+	<tr>
+		<td class='td-0'>Z (atomic number)</td>
+		<td class='td-1'></td>
+	</tr>
+	<tr>
+		<td class='td-0'>Element symbol</td>
+		<td class='td-1'></td>
+	</tr>
+	<tr>
+		<td class='td-0'>T<sub>1/2</sub></td>
+		<td class='td-1'></td>
+	</tr>
+</table>
+
+<table id='tab_pfResult' style='display: none;'>
+	<caption><nobr>Projectile Fragmentation Result</nobr></caption>
+	<tr>
+		<td class='td-0'>Beam rate</td>
+		<td class='td-1'></td>
+	</tr>
+	<tr>
+		<td class='td-0'>AZ Beam element</td>
+		<td class='td-1'></td>
+	</tr>
+	<tr>
+		<td class='td-0'>Beam energy</td>
+		<td class='td-1'></td>
+	</tr>
+	<tr>
+		<td class='td-0'>Target thickness</td>
+		<td class='td-1'></td>
+	</tr>
+</table>
+
+<table id='tab_fissionResult' style='display: none;'>
+	<caption><nobr>Fission Result</nobr></caption>
+	<tr>
+		<td class='td-0'>Beam rate</td>
+		<td class='td-1'></td>
+	</tr>
+	<tr>
+		<td class='td-0'>AZ Beam element</td>
+		<td class='td-1'></td>
+	</tr>
+	<tr>
+		<td class='td-0'>Beam energy</td>
+		<td class='td-1'></td>
+	</tr>
+	<tr>
+		<td class='td-0'>Target thickness</td>
+		<td class='td-1'></td>
+	</tr>
+</table>
+<p id='p_file' style='font-size: 18px; display: none;' align="left"> For further information regarding teses calculations, please refer to the file.</p>
+</div>
+</div>
+</body>
+
+<script src='/dist/sql-wasm.js'></script>
+<script src='/script/estimateBeam.js'></script>
+
+</html>
