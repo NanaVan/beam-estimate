@@ -30,7 +30,11 @@ async function checkNuclei(){
 		if (Array.isArray(result_fission) && result_fission.length > 0){
 			document.getElementById('tab_fissionResult').style.display = 'block';
 			document.getElementById('tab_fissionResult').rows[0].cells[1].innerHTML = result_fission[0].toExponential(3).toString() + ' pps';
-			document.getElementById('tab_fissionResult').rows[1].cells[1].innerHTML = (result_fission[1]*100).toFixed(3).toString() + ' %';
+			let temp_purity = (result_fission[1]*100).toFixed(3)
+			if (temp_purity < 0.001){
+				temp_purity = (result_fission[1]*100).toExponential(3)
+			}
+			document.getElementById('tab_fissionResult').rows[1].cells[1].innerHTML = temp_purity.toString() + ' %';
 			document.getElementById('tab_fissionResult').rows[2].cells[1].innerHTML = result_fission[2];
 			document.getElementById('tab_fissionResult').rows[3].cells[1].innerHTML = result_fission[3].toString() + ' MeV/u' ;
 			document.getElementById('tab_fissionResult').rows[4].cells[1].innerHTML = '<span>' + result_fission[4].toString() + ' mg/cm<sup>2</sup></span>';
@@ -40,7 +44,11 @@ async function checkNuclei(){
 		if (Array.isArray(result_pf) && result_pf.length > 0){
 			document.getElementById('tab_pfResult').style.display = 'block';
 			document.getElementById('tab_pfResult').rows[0].cells[1].innerHTML = result_pf[0].toExponential(3).toString() + ' pps';
-			document.getElementById('tab_pfResult').rows[1].cells[1].innerHTML = (result_pf[1]*100).toFixed(3).toString() + ' %';
+			temp_purity = (result_pf[1]*100).toFixed(3)
+			if (temp_purity < 0.001){
+				temp_purity = (result_pf[1]*100).toExponential(3)
+			}
+			document.getElementById('tab_pfResult').rows[1].cells[1].innerHTML = temp_purity.toString() + ' %';
 			document.getElementById('tab_pfResult').rows[2].cells[1].innerHTML = result_pf[2].match(/\d{2,3}[A-Za-z]{1,2}/g);
 			document.getElementById('tab_pfResult').rows[3].cells[1].innerHTML = result_pf[3].toString() + ' MeV/u' ;
 			document.getElementById('tab_pfResult').rows[4].cells[1].innerHTML = '<span>' + result_pf[4].toString() + ' mg/cm<sup>2</sup></span>';
