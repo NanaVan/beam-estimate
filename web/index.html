@@ -3,7 +3,7 @@
 
 <head>
 	<meta charset='utf-8'>
-	<title>RIBILL2 Estimated Rate</title>
+	<title>HFRS Estimated Rate</title>
 	<link rel="shortcut ion" type='image/x-icon' href='/dist/favicon-32.png'>
 </head>
 
@@ -128,18 +128,18 @@ a:visited{
 </style>
 
 <body>
-<h1 align='left'>RIBILL2 Esitmated Rates</h1>
+<h1 align='left'>HFRS Esitmated Rates</h1>
 <p style='font-size: 18px;' align="left">Enetr values for A and Z in the form below and click the "Lookup Estimate" button to view calculations.</p>
 <div class='parent'>
 <div class='child' style="height: 100px;">
 <table id="estimator" style='height: 100px;'>
 	<tr>
 		<td class='td-0'>A (mass number)</td>
-		<td><input type='int' id='mass_number' size='15' style='font-size: 18px;'/></td>
+		<td><input type='int' id='mass_number' size='15' value='111' style='font-size: 18px;'/></td>
 	</tr>
 	<tr>
 		<td class='td-0'>Z (atomic number)</td>
-		<td><input type='int' id='atomic_number' size='15' style='font-size: 18px;'/></td>
+		<td><input type='int' id='atomic_number' size='15' value='50' style='font-size: 18px;'/></td>
 	</tr>
 </table>
 </div>
@@ -192,6 +192,10 @@ a:visited{
 		<td class='td-0'>Target thickness</td>
 		<td class='td-1'></td>
 	</tr>
+	<tr>
+		<td><a id='a_pf' style='font-size: 18px;' href='' download>Download .lpp file</a></td>
+		<td></td>
+	</tr>
 </table>
 
 <table id='tab_fissionResult' style='display: none; height: 200px;'>
@@ -216,13 +220,20 @@ a:visited{
 		<td class='td-0'>Target thickness</td>
 		<td class='td-1'></td>
 	</tr>
+	<tr>
+		<td><a style='font-size: 18px;' id='a_fission' href='' download>Download .lpp file</a></td>
+		<td></td>
+	</tr>
 </table>
-<p id='p_file' style='font-size: 18px; display: none;' align="left"> For further information regarding teses calculations, please refer to the file.</p>
+<p id='p_warning_file' style='font-size: 18px; display: none;' align="left">if .lpp file is not available please contact <a href='mailto:yanxinliang08@impcas.ac.cn' style='color: gray;'>yanxinliang08@impcas.ac.cn</a></p>
 </div>
 </div>
 </body>
 
 <script src='/dist/sql-wasm.js'></script>
 <script src='/script/estimateBeam.js'></script>
+<script>
+	checkNuclei();
+</script>
 
 </html>

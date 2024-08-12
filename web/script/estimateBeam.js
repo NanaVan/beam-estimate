@@ -30,33 +30,39 @@ async function checkNuclei(){
 		if (Array.isArray(result_fission) && result_fission.length > 0){
 			document.getElementById('tab_fissionResult').style.display = 'block';
 			document.getElementById('tab_fissionResult').rows[0].cells[1].innerHTML = result_fission[0].toExponential(3).toString() + ' pps';
-			let temp_purity = (result_fission[1]*100).toFixed(3)
-			if (temp_purity < 0.001){
-				temp_purity = (result_fission[1]*100).toExponential(3)
+			let fission_purity = (result_fission[1]*100).toFixed(3)
+			if (fission_purity < 0.001){
+				fission_purity = (result_fission[1]*100).toExponential(3)
 			}
-			document.getElementById('tab_fissionResult').rows[1].cells[1].innerHTML = temp_purity.toString() + ' %';
+			document.getElementById('tab_fissionResult').rows[1].cells[1].innerHTML = fission_purity.toString() + ' %';
 			document.getElementById('tab_fissionResult').rows[2].cells[1].innerHTML = result_fission[2];
 			document.getElementById('tab_fissionResult').rows[3].cells[1].innerHTML = result_fission[3].toString() + ' MeV/u' ;
 			document.getElementById('tab_fissionResult').rows[4].cells[1].innerHTML = '<span>' + result_fission[4].toString() + ' mg/cm<sup>2</sup></span>';
+			//console.log(result_fission[5]);
+			document.getElementById('a_fission').href = '/files/fission/' + result_fission[5] + '_Test_auto_Run.lpp'
 		}else{
 			flag += 1;
 		}
 		if (Array.isArray(result_pf) && result_pf.length > 0){
 			document.getElementById('tab_pfResult').style.display = 'block';
 			document.getElementById('tab_pfResult').rows[0].cells[1].innerHTML = result_pf[0].toExponential(3).toString() + ' pps';
-			temp_purity = (result_pf[1]*100).toFixed(3)
-			if (temp_purity < 0.001){
-				temp_purity = (result_pf[1]*100).toExponential(3)
+			pf_purity = (result_pf[1]*100).toFixed(3)
+			if (pf_purity < 0.001){
+				pf_purity = (result_pf[1]*100).toExponential(3)
 			}
-			document.getElementById('tab_pfResult').rows[1].cells[1].innerHTML = temp_purity.toString() + ' %';
+			document.getElementById('tab_pfResult').rows[1].cells[1].innerHTML = pf_purity.toString() + ' %';
 			document.getElementById('tab_pfResult').rows[2].cells[1].innerHTML = result_pf[2].match(/\d{2,3}[A-Za-z]{1,2}/g);
 			document.getElementById('tab_pfResult').rows[3].cells[1].innerHTML = result_pf[3].toString() + ' MeV/u' ;
 			document.getElementById('tab_pfResult').rows[4].cells[1].innerHTML = '<span>' + result_pf[4].toString() + ' mg/cm<sup>2</sup></span>';
+			//console.log(result_pf[5]);
+			document.getElementById('a_pf').href = '/files/pf/' + result_pf[5] + '_Test_auto_Run.lpp'
 		}else{
 			flag += 1;
 		}
 		if (flag == 2){
 			document.getElementById('p_error1').style.display = 'block';	
+		}else{
+			document.getElementById('p_warning_file').style.display = 'block';
 		}
 
 	}
@@ -68,7 +74,7 @@ function estimate_init(){
 	document.getElementById('tab_nuclei').style.display = 'none';
 	document.getElementById('tab_pfResult').style.display = 'none';
 	document.getElementById('tab_fissionResult').style.display = 'none';
-	document.getElementById('p_file').style.display = 'none';
+	document.getElementById('p_warning_file').style.display = 'none';
 	document.getElementById('div_result').style.display = 'none';
 }
 
