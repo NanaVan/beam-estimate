@@ -24,7 +24,8 @@ class MainUi(QtWidgets.QMainWindow):
         self.model = QSqlTableModel()
         self.table_widget.setModel(self.model)
         #self.model.setTable('TOTALNUCLEIDATA')
-        #self.model.setTable('FISSIONDATA')
+        #self.model.setTable('FISSIONDATA_IMP')
+        #self.model.setTable('FISSIONDATA_IFN')
         self.model.setTable('PFDATA')
         self.model.select()
 
