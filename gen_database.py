@@ -114,7 +114,7 @@ class gen_database():
                 while True:
                     line = lpp.readline().strip()
                     if line == "[settings]":
-                        primary_beam = lpp.readline().strip().split()[2]
+                        primary_beam = lpp.readline().strip().split(';')[0].strip().split('=')[-1].replace(' ', '')
                         primary_energy = lpp.readline().strip().split()[2]
                         primary_intensity = lpp.readline().strip().split()[2]
                     elif line == "[target]":
@@ -236,7 +236,7 @@ class gen_database():
                 while True:
                     line = lpp.readline().strip()
                     if line == "[settings]":
-                        primary_beam = lpp.readline().strip().split()[2]
+                        primary_beam = lpp.readline().strip().split(';')[0].strip().split('=')[-1].replace(' ', '')
                         primary_energy = lpp.readline().strip().split()[2]
                         primary_intensity = lpp.readline().strip().split()[2]
                     elif line == "[target]":
