@@ -267,7 +267,7 @@ class gen_database():
                 #print(result)
                 total_yield = self.cur.execute("SELECT sum(IONYIELD) FROM temp_file").fetchone()[0]
                 result = [(item[0], item[0]/total_yield, 10, 1e3, \
-                    ';'.join(['{:}:{:}'.format(temp_QY[0], temp_QY[1]) for temp_QY in self.cur.execute("SELECT IONCHARGE, IONYIELD FROM temp_file WHERE NUCLEI=?", (item[1],)).fetchall()]),\
+                    ','.join(['{:}:{:}'.format(temp_QY[0], temp_QY[1]) for temp_QY in self.cur.execute("SELECT IONCHARGE, IONYIELD FROM temp_file WHERE NUCLEI=?", (item[1],)).fetchall()]),\
                         item[1]) for item in result]
                 self.cur.executemany("UPDATE temp_file SET YIELD=?, PURE=?, IONCHARGE=?, IONYIELD=?, CHARGEYIELD=? WHERE NUCLEI=?", result)
                 self.cur.executescript('''
