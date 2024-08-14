@@ -11,7 +11,7 @@ async function checkNuclei(){
 	const db = new SQL.Database(new Uint8Array(buf));
 	let stmt = db.prepare("SELECT ElEMENT, HALFLIFE, BR FROM TOTALNUCLEIDATA WHERE Z=$zval AND A=$aval");
 	let result = stmt.get({'$zval': document.getElementById('atomic_number').value, '$aval': document.getElementById('mass_number').value});
-	//console.log(result);
+	console.log(result);
 	if (Array.isArray(result) && result.length===0){
 		document.getElementById('div_result').style.display = 'block';	
 		document.getElementById('p_error0').style.display = 'block';	
@@ -30,7 +30,7 @@ async function checkNuclei(){
 		stmt = db.prepare("SELECT YIELD, CHARGEYIELD, PURE, BEAM, ENERGY, INTENSITY, BRHO, TARGET, THICKNESS, FILENAME FROM FISSIONDATA_IMP WHERE A=$aval AND ELEMENT=$eleval");
 		let result_fission_IMP = stmt.get({'$aval': document.getElementById('mass_number').value, '$eleval': result[0]});
 		stmt.free();
-		stmt = db.prepare("SELECT YIELD, CHARGEYIELD, PURE, BEAM, ENERGY, INTENSITY, BRHO, TARGET, THICKNESS, FILENAME  FROM PFDATA WHERE A=$aval AND ELEMENT=$eleval");
+		stmt = db.prepare("SELECT YIELD, CHARGEYIELD, PURE, BEAM, ENERGY, INTENSITY, BRHO, TARGET, THICKNESS, FILENAME FROM PFDATA WHERE A=$aval AND ELEMENT=$eleval");
 		let result_pf = stmt.get({'$aval': document.getElementById('mass_number').value, '$eleval': result[0]});
 		let flag = 0;
 
@@ -118,6 +118,9 @@ async function checkNuclei(){
 		
 		if (flag == 3){
 			document.getElementById('p_error1').style.display = 'block';	
+		}else if (flag == 2){
+			document.getElementById('p_warning_file').style.display = 'block';
+			document.getElementById('div_result').style.height = (640 + (pf_charge_line.length - 1)*20).toString() + 'px';
 		}else{
 			document.getElementById('p_warning_file').style.display = 'block';
 			document.getElementById('div_result').style.height = (1280 + (fission_IFN_charge_line.length + fission_IMP_charge_line.length + pf_charge_line.length - 2)*20).toString() + 'px';
@@ -131,7 +134,8 @@ function estimate_init(){
 	document.getElementById('p_error1').style.display = 'none';
 	document.getElementById('tab_nuclei').style.display = 'none';
 	document.getElementById('tab_pfResult').style.display = 'none';
-	document.getElementById('tab_fissionResult').style.display = 'none';
+	document.getElementById('tab_fissionResult_IMP').style.display = 'none';
+	document.getElementById('tab_fissionResult_IFN').style.display = 'none';
 	document.getElementById('p_warning_file').style.display = 'none';
 	document.getElementById('div_result').style.display = 'none';
 }
