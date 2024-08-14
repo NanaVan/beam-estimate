@@ -1,5 +1,5 @@
 function rewriteDecayMode(str_DecayMode){
-	return str_DecayMode.replace('B', 'β').replace('A', 'α').replace('+', '<sup>+</sup>').replace('-', '<sup>-</sup>');
+	return str_DecayMode.replace('B', 'β').replace('A', 'α').replace('+', '<sup>+</sup>').replace('-', '<sup>-</sup>').replace(';', '; ');
 }
 
 async function checkNuclei(){
