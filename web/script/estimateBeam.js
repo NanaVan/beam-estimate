@@ -120,13 +120,22 @@ async function checkNuclei(){
 		if (flag == 3){
 			document.getElementById('p_error1').style.display = 'block';	
 		}else if (flag == 2){
-			document.getElementById('p_warning_file').style.display = 'block';
 			document.getElementById('div_result').style.height = (640 + (pf_charge_line.length - 1)*20).toString() + 'px';
 		}else{
-			document.getElementById('p_warning_file').style.display = 'block';
 			document.getElementById('div_result').style.height = (1280 + (fission_IFN_charge_line.length + fission_IMP_charge_line.length + pf_charge_line.length - 2)*20).toString() + 'px';
 		}
 
+		// hidden .lpp download except for the default ion
+		if (flag != 3){
+			if (document.getElementById('atomic_number').value != 50 || document.getElementById('mass_number').value != 111){
+			document.getElementById('p_warning_file_1').style.display = 'block';
+			document.getElementById('tr_pf_file').style.display = 'none';
+			document.getElementById('tr_fission_IFN_file').style.display = 'none';
+			document.getElementById('tr_fission_IMP_file').style.display = 'none';
+			}else{
+				document.getElementById('p_warning_file_0').style.display = 'block';
+			}
+		}
 	}
 }
 
@@ -137,8 +146,12 @@ function estimate_init(){
 	document.getElementById('tab_pfResult').style.display = 'none';
 	document.getElementById('tab_fissionResult_IMP').style.display = 'none';
 	document.getElementById('tab_fissionResult_IFN').style.display = 'none';
-	document.getElementById('p_warning_file').style.display = 'none';
+	document.getElementById('p_warning_file_0').style.display = 'none';
+	document.getElementById('p_warning_file_1').style.display = 'none';
 	document.getElementById('div_result').style.display = 'none';
+	document.getElementById('tr_pf_file').style.display = 'table-row';
+	document.getElementById('tr_fission_IFN_file').style.display = 'table-row';
+	document.getElementById('tr_fission_IMP_file').style.display = 'table-row';
 }
 
 const button_estimate = document.getElementById('estimate');
