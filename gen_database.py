@@ -8,9 +8,9 @@ El = ['H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne', 'Na', 'Mg', 'Al', 'S
 
 class gen_database():
     '''Read LiseCute++ files to get production of nuclei'''
-    def __init__(self):
+    def __init__(self, renew_all=True):
         try:
-            if os.path.exists("./web/dist/nuclei_data.sqlite"):
+            if os.path.exists("./web/dist/nuclei_data.sqlite") or renew_all:
                 os.remove("./web/dist/nuclei_data.sqlite")
             self.conn = sqlite3.connect("./web/dist/nuclei_data.sqlite")
             self.cur = self.conn.cursor()
