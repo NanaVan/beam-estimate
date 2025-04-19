@@ -9,34 +9,38 @@ El = ['H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne', 'Na', 'Mg', 'Al', 'S
 class gen_database():
     '''Read LiseCute++ files to get production of nuclei'''
     def __init__(self, renew_all=True):
-        try:
-            if os.path.exists("./web/dist/nuclei_data.sqlite") or renew_all:
-                os.remove("./web/dist/nuclei_data.sqlite")
+        if renew_all:
+            try:
+                if os.path.exists("./web/dist/nuclei_data.sqlite"):
+                    os.remove("./web/dist/nuclei_data.sqlite")
+                self.conn = sqlite3.connect("./web/dist/nuclei_data.sqlite")
+                self.cur = self.conn.cursor()
+                self.cur.execute('''CREATE TABLE TOTALNUCLEIDATA
+                (A          INT         NOT NULL,
+                ELEMENT     CHAR(2)     NOT NULL,
+                Z           INT         NOT NULL,
+                HALFLIFE    TEXT,
+                BR          TEXT
+                );''')
+                with open("./nubase2020.txt") as nubase:
+                    for _ in '_'*25:
+                        nubase.readline()
+                    for l in nubase:
+                        # skip the isomers
+                        if int(l[7]) != 0:
+                            continue
+                        A, Z, element, br_info = int(l[:3]), int(l[4:7]), re.split('(\d+)', l[11:16])[-1][:2], l[119:-1]
+                        element = element[0] if element[1]==' ' else element
+                        stubs = l[69:80].split()
+                        half_life = stubs[0].rstrip('#') if len(stubs)>0 else 'n/a'
+                        half_life += ' ' + stubs[1] if (half_life[-1].isdigit() and len(stubs)>1) else ""
+                        self.cur.execute("INSERT INTO TOTALNUCLEIDATA(A,ELEMENT,Z,HALFLIFE,BR) VALUES (?,?,?,?,?)", (A, element, Z, half_life, br_info))
+                self.conn.commit()
+            except FileNotFoundError:
+                print("Error: cannot find the files of nubase2020!")
+        else:
             self.conn = sqlite3.connect("./web/dist/nuclei_data.sqlite")
             self.cur = self.conn.cursor()
-            self.cur.execute('''CREATE TABLE TOTALNUCLEIDATA
-            (A          INT         NOT NULL,
-            ELEMENT     CHAR(2)     NOT NULL,
-            Z           INT         NOT NULL,
-            HALFLIFE    TEXT,
-            BR          TEXT
-            );''')
-            with open("./nubase2020.txt") as nubase:
-                for _ in '_'*25:
-                    nubase.readline()
-                for l in nubase:
-                    # skip the isomers
-                    if int(l[7]) != 0:
-                        continue
-                    A, Z, element, br_info = int(l[:3]), int(l[4:7]), re.split('(\d+)', l[11:16])[-1][:2], l[119:-1]
-                    element = element[0] if element[1]==' ' else element
-                    stubs = l[69:80].split()
-                    half_life = stubs[0].rstrip('#') if len(stubs)>0 else 'n/a'
-                    half_life += ' ' + stubs[1] if (half_life[-1].isdigit() and len(stubs)>1) else ""
-                    self.cur.execute("INSERT INTO TOTALNUCLEIDATA(A,ELEMENT,Z,HALFLIFE,BR) VALUES (?,?,?,?,?)", (A, element, Z, half_life, br_info))
-            self.conn.commit()
-        except FileNotFoundError:
-            print("Error: cannot find the files of nubase2020!")
 
     def read_pf(self, file_folders):
         '''
