@@ -38,14 +38,6 @@ class gen_database():
         except FileNotFoundError:
             print("Error: cannot find the files of nubase2020!")
 
-    def get_subfolders(self, folder):
-        subfolders = []
-        for item in os.listdir(folder):
-            item_path = os.path.join(folder, item)
-            if os.path.isdir(item_path):
-                subfolders.append(item_path)
-        return subfolders
-
     def read_pf(self, file_folders):
         '''
         read .lpp files in assigned folder for projectile fragmentation channel
@@ -75,12 +67,10 @@ class gen_database():
                 TARGET      TEXT,
                 THICKNESS   REAL,
                 BRHO        REAL,
+                DPP         REAL,
                 CHARGEYIELD TEXT);''')
         self.cur.execute("DELETE FROM PFDATA")
-        folders = self.get_subfolders(file_folders)
-        files = []
-        for folder in folders:
-            files += glob.glob(folder+'/*.lpp')
+        files = glob.glob(file_folders+'**\\**\\*.lpp')
         i = 0
         for file_address in files:
             if os.path.getsize(file_address) <= 71200:
@@ -110,7 +100,9 @@ class gen_database():
                         BRHO        REAL,
                         IONCHARGE   INT,
                         IONYIELD    REAL,
+                        DPP         REAL,
                         CHARGEYIELD TEXT);''')
+                dpp = 4 if file_address.split('\\')[-3] == 'dpp_4' else 0.4
                 while True:
                     line = lpp.readline().strip()
                     if line == "[settings]":
@@ -130,7 +122,7 @@ class gen_database():
                 for line in lpp:
                     segment = line.strip().split(',')[0].split()
                     A, element, Q = re.split("([A-Z][a-z]?)", segment[0]+segment[-2][:-1])
-                    self.cur.execute("INSERT INTO temp_file (A, ELEMENT, NUCLEI, FILENAME, BEAM, ENERGY, INTENSITY, TARGET, THICKNESS, BRHO, IONCHARGE, IONYIELD) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", (A, element, A+element, file_name, primary_beam, primary_energy, primary_intensity, target, target_thickness, Brho, Q, segment[-1][1:]))
+                    self.cur.execute("INSERT INTO temp_file (A, ELEMENT, NUCLEI, FILENAME, BEAM, ENERGY, INTENSITY, TARGET, THICKNESS, BRHO, IONCHARGE, IONYIELD, DPP) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)", (A, element, A+element, file_name, primary_beam, primary_energy, primary_intensity, target, target_thickness, Brho, Q, segment[-1][1:], dpp))
                 # reset yield for multiple charge state channels
                 result = self.cur.execute("SELECT sum(IONYIELD), NUCLEI FROM temp_file GROUP BY NUCLEI").fetchall()
                 total_yield = self.cur.execute("SELECT sum(IONYIELD) FROM temp_file").fetchone()[0]
@@ -144,7 +136,7 @@ class gen_database():
                         ALTER TABLE TEMPTABLE RENAME TO temp_file;''')
                 self.conn.commit()
                 # save file information
-                file_dict[file_name] = {'primary_beam': primary_beam, 'primary_energy': primary_energy, 'primary_intensity': primary_intensity, 'total_yield': total_yield, 'target': target, 'target_thickness': target_thickness, 'Brho': Brho}
+                file_dict[file_name] = {'primary_beam': primary_beam, 'primary_energy': primary_energy, 'primary_intensity': primary_intensity, 'total_yield': total_yield, 'target': target, 'target_thickness': target_thickness, 'Brho': Brho, 'dpp': dpp}
                 # save nuclei information
                 for nuclei in result:
                     if nuclei[-1] in nuclei_dict:
@@ -152,11 +144,11 @@ class gen_database():
                     else:
                         nuclei_dict[nuclei[-1]] = {file_name: {'yield': nuclei[0], 'purity': nuclei[0]/total_yield, 'charge_yield': nuclei[-2]}}
                 # sort for the maximum yield for each nuclei
-                self.cur.execute('''INSERT INTO PFDATA (A, ELEMENT, NUCLEI, YIELD, PURE, FILENAME, BEAM, ENERGY, INTENSITY, TARGET, THICKNESS, BRHO, CHARGEYIELD) \
-                            SELECT A, ELEMENT, NUCLEI, YIELD, PURE, FILENAME, BEAM, ENERGY, INTENSITY, TARGET, THICKNESS, BRHO, CHARGEYIELD FROM temp_file;''')
+                self.cur.execute('''INSERT INTO PFDATA (A, ELEMENT, NUCLEI, YIELD, PURE, FILENAME, BEAM, ENERGY, INTENSITY, TARGET, THICKNESS, BRHO, CHARGEYIELD, DPP) \
+                            SELECT A, ELEMENT, NUCLEI, YIELD, PURE, FILENAME, BEAM, ENERGY, INTENSITY, TARGET, THICKNESS, BRHO, CHARGEYIELD, DPP FROM temp_file;''')
                 self.conn.commit()
-                result = self.cur.execute("SELECT max(YIELD), PURE, FILENAME, BEAM, ENERGY, INTENSITY, TARGET, THICKNESS, BRHO, CHARGEYIELD, NUCLEI FROM PFDATA GROUP BY NUCLEI").fetchall()
-                self.cur.executemany("UPDATE PFDATA SET YIELD=?, PURE=?, FILENAME=?, BEAM=?, ENERGY=?, INTENSITY=?, TARGET=?, THICKNESS=?, BRHO=?, CHARGEYIELD=? WHERE NUCLEI=?", result)
+                result = self.cur.execute("SELECT max(YIELD), PURE, FILENAME, BEAM, ENERGY, INTENSITY, TARGET, THICKNESS, BRHO, CHARGEYIELD, NUCLEI, DPP FROM PFDATA WHERE DPP=? GROUP BY NUCLEI", (dpp,)).fetchall()
+                self.cur.executemany("UPDATE PFDATA SET YIELD=?, PURE=?, FILENAME=?, BEAM=?, ENERGY=?, INTENSITY=?, TARGET=?, THICKNESS=?, BRHO=?, CHARGEYIELD=? WHERE NUCLEI=? AND DPP=?", result)
                 self.cur.executescript("""
                         CREATE TABLE TEMPTABLE as SELECT DISTINCT * FROM PFDATA;
                         DROP TABLE PFDATA;
@@ -201,9 +193,10 @@ class gen_database():
                 TARGET      TEXT,
                 THICKNESS   REAL,
                 BRHO        REAL,
+                DPP         REAL,
                 CHARGEYIELD TEXT);''')
         self.cur.execute("DELETE FROM FISSIONDATA_IFN")
-        files = glob.glob(file_folder + '*.lpp')
+        files = glob.glob(file_folder + '**\\*.lpp')
         i = 0
         for file_address in files:
             if os.path.getsize(file_address) <= 71200:
@@ -233,7 +226,9 @@ class gen_database():
                         BRHO        REAL,
                         IONCHARGE   INT,
                         IONYIELD    REAL,
+                        DPP         REAL,
                         CHARGEYIELD TEXT);''')
+                dpp = 4 if file_address.split('\\')[-2] == 'dpp_4' else 0.4
                 while True:
                     line = lpp.readline().strip()
                     if line == "[settings]":
@@ -253,7 +248,7 @@ class gen_database():
                 for line in lpp:
                     segment = line.strip().split(',')[0].split()
                     A, element, Q = re.split("([A-Z][a-z]?)", segment[0]+segment[-2][:-1])
-                    self.cur.execute("INSERT INTO temp_file (A, ELEMENT, NUCLEI, FILENAME, BEAM, ENERGY, INTENSITY, TARGET, THICKNESS, BRHO, IONCHARGE, IONYIELD) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", (A, element, A+element, file_name, primary_beam, primary_energy, primary_intensity, target, target_thickness, Brho, Q, segment[-1][1:]))
+                    self.cur.execute("INSERT INTO temp_file (A, ELEMENT, NUCLEI, FILENAME, BEAM, ENERGY, INTENSITY, TARGET, THICKNESS, BRHO, IONCHARGE, IONYIELD, DPP) VALUES (?,?,?,?,?,?,?,?,?,?,?,?, ?)", (A, element, A+element, file_name, primary_beam, primary_energy, primary_intensity, target, target_thickness, Brho, Q, segment[-1][1:], dpp))
                 # reset yield for multiple reaction channels for each charge state
                 result = self.cur.execute("SELECT sum(IONYIELD), NUCLEI, IONCHARGE FROM temp_file GROUP BY NUCLEI, IONCHARGE").fetchall()
                 #print(result)
@@ -277,7 +272,7 @@ class gen_database():
                         ALTER TABLE TEMPTABLE RENAME TO temp_file;''')
                 self.conn.commit()
                 # save file information
-                file_dict[file_name] = {'primary_beam': primary_beam, 'primary_energy': primary_energy, 'primary_intensity': primary_intensity, 'total_yield': total_yield, 'target': target, 'target_thickness': target_thickness}
+                file_dict[file_name] = {'primary_beam': primary_beam, 'primary_energy': primary_energy, 'primary_intensity': primary_intensity, 'total_yield': total_yield, 'target': target, 'target_thickness': target_thickness, 'dpp': dpp}
                 # save nuclei information
                 for nuclei in result:
                     if nuclei[-1] in nuclei_dict:
@@ -285,11 +280,11 @@ class gen_database():
                     else:
                         nuclei_dict[nuclei[-1]] = {file_name: {'yield': nuclei[0], 'purity': nuclei[0]/total_yield, 'charge_yield': nuclei[-2]}}
                 # sort for the maximum yield for each nuclei
-                self.cur.execute('''INSERT INTO FISSIONDATA_IFN (A, ELEMENT, NUCLEI, YIELD, PURE, FILENAME, BEAM, ENERGY, INTENSITY, TARGET, THICKNESS, BRHO, CHARGEYIELD) \
-                            SELECT A, ELEMENT, NUCLEI, YIELD, PURE, FILENAME, BEAM, ENERGY, INTENSITY, TARGET, THICKNESS, BRHO, CHARGEYIELD FROM temp_file;''')
+                self.cur.execute('''INSERT INTO FISSIONDATA_IFN (A, ELEMENT, NUCLEI, YIELD, PURE, FILENAME, BEAM, ENERGY, INTENSITY, TARGET, THICKNESS, BRHO, CHARGEYIELD, DPP) \
+                            SELECT A, ELEMENT, NUCLEI, YIELD, PURE, FILENAME, BEAM, ENERGY, INTENSITY, TARGET, THICKNESS, BRHO, CHARGEYIELD, DPP FROM temp_file;''')
                 self.conn.commit()
-                result = self.cur.execute("SELECT max(YIELD), PURE, FILENAME, BEAM, ENERGY, INTENSITY, TARGET, THICKNESS, BRHO, CHARGEYIELD, NUCLEI FROM FISSIONDATA_IFN GROUP BY NUCLEI").fetchall()
-                self.cur.executemany("UPDATE FISSIONDATA_IFN SET YIELD=?, PURE=?, FILENAME=?, BEAM=?, ENERGY=?, INTENSITY=?, TARGET=?, THICKNESS=?, BRHO=?, CHARGEYIELD=? WHERE NUCLEI=?", result)
+                result = self.cur.execute("SELECT max(YIELD), PURE, FILENAME, BEAM, ENERGY, INTENSITY, TARGET, THICKNESS, BRHO, CHARGEYIELD, NUCLEI, DPP FROM FISSIONDATA_IFN WHERE DPP=? GROUP BY NUCLEI", (dpp,)).fetchall()
+                self.cur.executemany("UPDATE FISSIONDATA_IFN SET YIELD=?, PURE=?, FILENAME=?, BEAM=?, ENERGY=?, INTENSITY=?, TARGET=?, THICKNESS=?, BRHO=?, CHARGEYIELD=? WHERE NUCLEI=? AND DPP=?", result)
                 self.cur.executescript("""
                         CREATE TABLE TEMPTABLE as SELECT DISTINCT * FROM FISSIONDATA_IFN;
                         DROP TABLE FISSIONDATA_IFN;
