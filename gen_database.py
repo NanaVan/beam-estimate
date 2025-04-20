@@ -77,7 +77,7 @@ class gen_database():
         files = glob.glob(file_folders+'**\\**\\*.lpp')
         i = 0
         for file_address in files:
-            if os.path.getsize(file_address) <= 71200:
+            if os.path.getsize(file_address) <= 72000:
                 if 'error' in file_dict:
                     file_dict['error'].append(file_address)
                 else:
