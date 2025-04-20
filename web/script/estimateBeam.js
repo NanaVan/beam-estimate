@@ -3,6 +3,8 @@ function rewriteDecayMode(str_DecayMode){
 }
 
 async function checkNuclei(){
+	let input_Z = document.getElementById('atomic_number').value;
+	let input_A = document.getElementById('mass_number').value;
 	const [SQL, buf] = await Promise.all([
 		initSqlJs({locateFile: file=> `/dist/${file}`}),
 		fetch("/dist/nuclei_data.sqlite").then(res => res.arrayBuffer())
@@ -10,16 +12,18 @@ async function checkNuclei(){
 	]);
 	const db = new SQL.Database(new Uint8Array(buf));
 	let stmt = db.prepare("SELECT ElEMENT, HALFLIFE, BR FROM TOTALNUCLEIDATA WHERE Z=$zval AND A=$aval");
-	let result = stmt.get({'$zval': document.getElementById('atomic_number').value, '$aval': document.getElementById('mass_number').value});
+	let result = stmt.get({'$zval': input_Z, '$aval': input_A});
 	stmt.free();
-	//console.log(result);
 	if (Array.isArray(result) && result.length===0){
 		document.getElementById('div_result').style.display = 'block';	
 		document.getElementById('p_error0').style.display = 'block';
 		document.getElementById('tab_nuclei').style.display = 'block';	
 		document.getElementById('tab_nuclei').rows[0].cells[1].innerHTML = document.getElementById('mass_number').value;	
 		document.getElementById('tab_nuclei').rows[1].cells[1].innerHTML = document.getElementById('atomic_number').value;	
-		document.getElementById('tab_nuclei').rows[2].cells[1].innerHTML = 'unknown';	
+		let stmt = db.prepare("SELECT ElEMENT FROM TOTALNUCLEIDATA WHERE Z=$zval");
+		result = stmt.get({'$zval': input_Z});
+		stmt.free();
+		document.getElementById('tab_nuclei').rows[2].cells[1].innerHTML = result[0];	
 		document.getElementById('tab_nuclei').rows[3].cells[1].innerHTML = 'unknown';
 		document.getElementById('tab_nuclei').rows[4].cells[1].innerHTML = 'unknown';
 	}else{
@@ -32,19 +36,19 @@ async function checkNuclei(){
 		document.getElementById('tab_nuclei').rows[4].cells[1].innerHTML = rewriteDecayMode(result[2]);
 	}
 	stmt = db.prepare("SELECT YIELD, CHARGEYIELD, PURE, BEAM, ENERGY, INTENSITY, BRHO, TARGET, THICKNESS, FILENAME FROM FISSIONDATA_IFN WHERE A=$aval AND ELEMENT=$eleval AND DPP=4");
-	let result_fission_IFN_dpp4 = stmt.get({'$aval': document.getElementById('mass_number').value, '$eleval': result[0]});
+	let result_fission_IFN_dpp4 = stmt.get({'$aval': input_A, '$eleval': result[0]});
 	stmt.free();
 	stmt = db.prepare("SELECT YIELD, CHARGEYIELD, PURE, BEAM, ENERGY, INTENSITY, BRHO, TARGET, THICKNESS, FILENAME FROM FISSIONDATA_IFN WHERE A=$aval AND ELEMENT=$eleval AND DPP=0.4");
-	let result_fission_IFN_dpp04 = stmt.get({'$aval': document.getElementById('mass_number').value, '$eleval': result[0]});
+	let result_fission_IFN_dpp04 = stmt.get({'$aval': input_A, '$eleval': result[0]});
 	stmt.free();
 	stmt = db.prepare("SELECT YIELD, CHARGEYIELD, PURE, BEAM, ENERGY, INTENSITY, BRHO, TARGET, THICKNESS, FILENAME FROM FISSIONDATA_IMP WHERE A=$aval AND ELEMENT=$eleval");
-	let result_fission_IMP = stmt.get({'$aval': document.getElementById('mass_number').value, '$eleval': result[0]});
+	let result_fission_IMP = stmt.get({'$aval': input_A, '$eleval': result[0]});
 	stmt.free();
 	stmt = db.prepare("SELECT YIELD, CHARGEYIELD, PURE, BEAM, ENERGY, INTENSITY, BRHO, TARGET, THICKNESS, FILENAME FROM PFDATA WHERE A=$aval AND ELEMENT=$eleval AND DPP=4");
-	let result_pf_dpp4 = stmt.get({'$aval': document.getElementById('mass_number').value, '$eleval': result[0]});
+	let result_pf_dpp4 = stmt.get({'$aval': input_A, '$eleval': result[0]});
 	stmt.free();
 	stmt = db.prepare("SELECT YIELD, CHARGEYIELD, PURE, BEAM, ENERGY, INTENSITY, BRHO, TARGET, THICKNESS, FILENAME FROM PFDATA WHERE A=$aval AND ELEMENT=$eleval AND DPP=0.4");
-	let result_pf_dpp04 = stmt.get({'$aval': document.getElementById('mass_number').value, '$eleval': result[0]});
+	let result_pf_dpp04 = stmt.get({'$aval': input_A, '$eleval': result[0]});
 	stmt.free();
 
 	let flag = 0;
@@ -54,7 +58,6 @@ async function checkNuclei(){
 		document.getElementById('tab_pfResult').style.display = 'block';
 		if (Array.isArray(result_pf_dpp4) && result_pf_dpp4.length > 0){
 			document.getElementById('tab_pfResult').rows[1].cells[1].innerHTML = result_pf_dpp4[0].toExponential(3).toString() + ' pps';
-			console.log(result_pf_dpp4[1]);
 			let pf_charge_dpp4_info = result_pf_dpp4[1].split(',');
 			var pf_charge_dpp4_line = [];
 			for (let item of pf_charge_dpp4_info){
@@ -72,8 +75,8 @@ async function checkNuclei(){
 			document.getElementById('tab_pfResult').rows[7].cells[1].innerHTML = result_pf_dpp4[6] + ' Tm';
 			document.getElementById('tab_pfResult').rows[8].cells[1].innerHTML = result_pf_dpp4[7];
 			document.getElementById('tab_pfResult').rows[9].cells[1].innerHTML = '<span>' + result_pf_dpp4[8].toString() + ' mg/cm<sup>2</sup></span>';
-			//console.log(result_pf[9]);
-			document.getElementById('a_pf_4').href = '/files/pf/'+ result_pf_dpp4[3].match(/\d{2,3}[A-Za-z]{1,2}/g) + '/' + result_pf_dpp4[9] + '_Test_auto_Run.lpp'
+			console.log(result_pf_dpp4[9]);
+			document.getElementById('a_pf_4').href = '/files/pf/dpp4/'+ result_pf_dpp4[3].match(/\d{2,3}[A-Za-z]{1,2}/g) + '/' + result_pf_dpp4[9] + '_Test_auto_Run.lpp'
 		}else{
 			document.getElementById('tab_pfResult').rows[1].cells[1].innerHTML = '-';
 			document.getElementById('tab_pfResult').rows[2].cells[1].innerHTML = '-';
@@ -87,7 +90,6 @@ async function checkNuclei(){
 		}		
 		if (Array.isArray(result_pf_dpp04) && result_pf_dpp04.length > 0){
 			document.getElementById('tab_pfResult').rows[1].cells[2].innerHTML = result_pf_dpp04[0].toExponential(3).toString() + ' pps';
-			console.log(result_pf_dpp04[1]);
 			let pf_charge_dpp04_info = result_pf_dpp04[1].split(',');
 			var pf_charge_dpp04_line = [];
 			for (let item of pf_charge_dpp04_info){
@@ -105,8 +107,8 @@ async function checkNuclei(){
 			document.getElementById('tab_pfResult').rows[7].cells[2].innerHTML = result_pf_dpp04[6] + ' Tm';
 			document.getElementById('tab_pfResult').rows[8].cells[2].innerHTML = result_pf_dpp04[7];
 			document.getElementById('tab_pfResult').rows[9].cells[2].innerHTML = '<span>' + result_pf_dpp04[8].toString() + ' mg/cm<sup>2</sup></span>';
-			//console.log(result_pf[9]);
-			document.getElementById('a_pf_04').href = '/files/pf/'+ result_pf_dpp04[3].match(/\d{2,3}[A-Za-z]{1,2}/g) + '/' + result_pf_dpp04[9] + '_Test_auto_Run.lpp'
+			console.log(result_pf_dpp04[9]);
+			document.getElementById('a_pf_04').href = '/files/pf/dpp04/'+ result_pf_dpp04[3].match(/\d{2,3}[A-Za-z]{1,2}/g) + '/' + result_pf_dpp04[9] + '_Test_4mmAl_dpp04.lpp'
 		}else{
 			document.getElementById('tab_pfResult').rows[1].cells[2].innerHTML = '-';
 			document.getElementById('tab_pfResult').rows[2].cells[2].innerHTML = '-';
@@ -118,7 +120,7 @@ async function checkNuclei(){
 			document.getElementById('tab_pfResult').rows[8].cells[2].innerHTML = '-';
 			document.getElementById('tab_pfResult').rows[9].cells[2].innerHTML = '-';
 		}
-		document.getElementById('tab_pfResult').style.height = (320 + (Math.max(pf_purity_dpp04.length, pf_purity_dpp4.length) - 1) * 20).toString() + 'px';
+		document.getElementById('tab_pfResult').style.height = (340 + (Math.max(pf_charge_dpp4_line.length, pf_charge_dpp04_line.length) - 1) * 20).toString() + 'px';
 	}
 
 	if (Array.isArray(result_fission_IFN_dpp4) && result_fission_IFN_dpp4.length===0 && Array.isArray(result_fission_IFN_dpp04) && result_fission_IFN_dpp04.length===0){
@@ -133,9 +135,9 @@ async function checkNuclei(){
 				fission_IFN_charge_dpp4_line.push(item.split(':')[0]+'+: ' + Number(item.split(':')[1]).toExponential(3).toString() + ' pps');
 			}
 			document.getElementById('tab_fissionResult_IFN').rows[2].cells[1].innerHTML = fission_IFN_charge_dpp4_line.join('<br/>');
-			let fission_IFN_purity_dpp4 = (result_fission_IFN_dpp4[2]*100).toFixed(3)
+			let fission_IFN_purity_dpp4 = (result_fission_IFN_dpp4[2]*100).toFixed(3);
 			if (fission_IFN_purity_dpp4 < 0.001){
-				fission_IFN_purity_dpp4 = (result_fission_IFN_dpp4[2]*100).toExponential(3)
+				fission_IFN_purity_dpp4 = (result_fission_IFN_dpp4[2]*100).toExponential(3);
 			}
 			document.getElementById('tab_fissionResult_IFN').rows[3].cells[1].innerHTML = fission_IFN_purity_dpp4.toString() + ' %';
 			document.getElementById('tab_fissionResult_IFN').rows[4].cells[1].innerHTML = result_fission_IFN_dpp4[3];
@@ -144,8 +146,8 @@ async function checkNuclei(){
 			document.getElementById('tab_fissionResult_IFN').rows[7].cells[1].innerHTML = result_fission_IFN_dpp4[6] + ' Tm';
 			document.getElementById('tab_fissionResult_IFN').rows[8].cells[1].innerHTML = result_fission_IFN_dpp4[7];
 			document.getElementById('tab_fissionResult_IFN').rows[9].cells[1].innerHTML = '<span>' + result_fission_IFN_dpp4[8].toString() + ' mg/cm<sup>2</sup></span>';
-			//console.log(result_fission_IFN[9]);
-			document.getElementById('a_fission_IFN_dpp4').href = '/files/fission/IFN/' + result_fission_IFN_dpp4[9] + '_Test_auto_Run.lpp';
+			console.log(result_fission_IFN_dpp4[9]);
+			document.getElementById('a_fission_IFN_dpp4').href = '/files/fission/IFN/dpp4/' + result_fission_IFN_dpp4[9] + '_Test_auto_Run.lpp';
 
 		}else{
 			document.getElementById('tab_fissionResult_IFN').rows[1].cells[1].innerHTML = '-'; 
@@ -165,10 +167,10 @@ async function checkNuclei(){
 			for (let item of fission_IFN_charge_dpp04_info){
 				fission_IFN_charge_dpp04_line.push(item.split(':')[0]+'+: ' + Number(item.split(':')[1]).toExponential(3).toString() + ' pps');
 			}
-			document.getElementById('tab_fissionResult_IFN').rows[2].cells[1].innerHTML = fission_IFN_charge_dpp04_line.join('<br/>');
-			let fission_IFN_purity_dpp04 = (result_fission_IFN_dpp04[2]*100).toFixed(3)
+			document.getElementById('tab_fissionResult_IFN').rows[2].cells[2].innerHTML = fission_IFN_charge_dpp04_line.join('<br/>');
+			let fission_IFN_purity_dpp04 = (result_fission_IFN_dpp04[2]*100).toFixed(3);
 			if (fission_IFN_purity_dpp04 < 0.001){
-				fission_IFN_purity_dpp04 = (result_fission_IFN_dpp04[2]*100).toExponential(3)
+				fission_IFN_purity_dpp04 = (result_fission_IFN_dpp04[2]*100).toExponential(3);
 			}
 			document.getElementById('tab_fissionResult_IFN').rows[3].cells[2].innerHTML = fission_IFN_purity_dpp04.toString() + ' %';
 			document.getElementById('tab_fissionResult_IFN').rows[4].cells[2].innerHTML = result_fission_IFN_dpp04[3];
@@ -177,8 +179,8 @@ async function checkNuclei(){
 			document.getElementById('tab_fissionResult_IFN').rows[7].cells[2].innerHTML = result_fission_IFN_dpp04[6] + ' Tm';
 			document.getElementById('tab_fissionResult_IFN').rows[8].cells[2].innerHTML = result_fission_IFN_dpp04[7];
 			document.getElementById('tab_fissionResult_IFN').rows[9].cells[2].innerHTML = '<span>' + result_fission_IFN_dpp04[8].toString() + ' mg/cm<sup>2</sup></span>';
-			//console.log(result_fission_IFN[9]);
-			document.getElementById('a_fission_IFN_dpp04').href = '/files/fission/IFN/' + result_fission_IFN_dpp04[9] + '_Test_auto_Run.lpp';
+			console.log(result_fission_IFN_dpp04[9]);
+			document.getElementById('a_fission_IFN_dpp04').href = '/files/fission/IFN/dpp04/' + result_fission_IFN_dpp04[9] + '_Test_auto_Run.lpp';
 
 		}else{
 			document.getElementById('tab_fissionResult_IFN').rows[1].cells[2].innerHTML = '-'; 
@@ -191,7 +193,7 @@ async function checkNuclei(){
 			document.getElementById('tab_fissionResult_IFN').rows[8].cells[2].innerHTML = '-'; 
 			document.getElementById('tab_fissionResult_IFN').rows[9].cells[2].innerHTML = '-'; 
 		}
-		document.getElementById('tab_fissionResult_IFN').style.height = (320 + (Math.max(fission_IFN_charge_dpp4_line.length, fission_IFN_charge_dpp04_line) - 1) * 20).toString() + 'px';
+		document.getElementById('tab_fissionResult_IFN').style.height = (340 + (Math.max(fission_IFN_charge_dpp4_line.length, fission_IFN_charge_dpp04_line.length) - 1) * 20).toString() + 'px';
 	}
 	
 		
@@ -226,14 +228,16 @@ async function checkNuclei(){
 	if (flag == 3){
 		document.getElementById('p_error1').style.display = 'block';	
 	}else if (flag == 2){
-		document.getElementById('div_result').style.height = (640 + (Math.max(pf_charge_dpp04_line.length, pf_charge_dpp4_line.length) - 1)*20).toString() + 'px';
+		document.getElementById('div_result').style.height = (620 + (Math.max(pf_charge_dpp04_line.length, pf_charge_dpp4_line.length) - 1)*20).toString() + 'px';
+	}else if (flag == 1){
+		document.getElementById('div_result').style.height = (960 + (Math.max(fission_IFN_charge_dpp04_line.length, fission_IFN_charge_dpp4_line.length) + Math.max(pf_charge_dpp04_line.length, pf_charge_dpp4_line.length) - 2)*20).toString() + 'px';
 	}else{
 		document.getElementById('div_result').style.height = (1280 + (Math.max(fission_IFN_charge_dpp04_line.length, fission_IFN_charge_dpp4_line.length) + fission_IMP_charge_line.length + Math.max(pf_charge_dpp04_line.length, pf_charge_dpp4_line.length) - 2)*20).toString() + 'px';
 	}
 
 	// hidden .lpp download except for the default ion
 	if (flag != 3){
-		if (document.getElementById('atomic_number').value != 50 || document.getElementById('mass_number').value != 111){
+		if (input_Z != 50 || input_A != 111){
 		document.getElementById('p_warning_file_1').style.display = 'block';
 		document.getElementById('tr_pf_file').style.display = 'none';
 		document.getElementById('tr_fission_IFN_file').style.display = 'none';
@@ -265,5 +269,4 @@ const button_estimate = document.getElementById('estimate');
 button_estimate.addEventListener('click', function() {
 	estimate_init();
 	checkNuclei();
-
 });
